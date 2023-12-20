@@ -7,4 +7,4 @@
 
 Skills: Python / C++ / Machine Learning / Git / Linux / PyQt
 
-github linkedin
+![Uploading DALL·E 2023-12-20 09.28.48 - A surreal, pencil-drawn landscape featuring physics symbols like atoms and equations, intertwined with digital circuitry and neural network motifs, re.png…]()
