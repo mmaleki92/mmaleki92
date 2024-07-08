@@ -5,5 +5,6 @@
 - 📫 Reach me at morteza.maleki@ut.ac.ir
 - 💬 Ask me about Python or Machine Learning
 
-Skills: Python / C++ / Machine Learning / Git / Linux / PyQt / CUDA / OPENMP / MPI
+Skills: Python / C++ / Machine Learning / Git / Linux / PyQt / CUDA / OPENMP / MPI 
+other: Pygame
 
