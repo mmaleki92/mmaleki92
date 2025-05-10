@@ -11,3 +11,23 @@ I'm a computational physicist focused on **Active Matter** and **Machine Learnin
 
 ## Skills
 Python | C++ | Machine Learning | Git | Linux | PyQt | CUDA | OPENMP | MPI | FastApi | Pygame | Teaching
+
+
+## packages
+
+![github homepage](https://github.com/mmaleki92/agri)
+
+```bash
+pip install agri
+```
+
+[github homepage](https://github.com/mmaleki92/pyising)
+```bash
+pip install pyising
+```
+
+[github homepage](https://github.com/mmaleki92/GameManager)
+```bash
+pip install game-manager
+```
+
