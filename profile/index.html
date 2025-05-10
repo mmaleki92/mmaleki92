@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morteza Maleki - Skills Snake Game</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            padding: 20px;
+            text-align: center;
+        }
+        h1, h2 {
+            margin-bottom: 10px;
+        }
+        .bio {
+            max-width: 600px;
+            margin-bottom: 30px;
+        }
+        .contact {
+            margin-bottom: 20px;
+        }
+        #game-container {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            border: 3px solid #30363d;
+            margin-bottom: 20px;
+        }
+        #game-canvas {
+            background-color: #161b22;
+        }
+        .skill-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 5px 10px;
+            border-radius: 5px;
+            z-index: 1;
+            font-weight: bold;
+        }
+        .score {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 5px 10px;
+            border-radius: 5px;
+            z-index: 1;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        .skill-legends {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 500px;
+            margin-top: 20px;
+        }
+        .skill-item {
+            margin: 5px;
+            padding: 5px 10px;
+            border-radius: 15px;
+            color: white;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Morteza Maleki</h1>
+    <h2>Computational Physicist | Active Matter | Machine Learning</h2>
+    
+    <div class="bio">
+        I'm a computational physicist who studies <strong>Active Matter</strong> and <strong>Machine Learning</strong>.
+        Collect skills by guiding the snake to the colorful skill icons!
+    </div>
+    
+    <div class="contact">
+        <p>📫 morteza.maleki@ut.ac.ir</p>
+    </div>
+    
+    <div id="game-container">
+        <div class="skill-label">Current Skill: <span id="current-skill">None</span></div>
+        <div class="score">Score: <span id="score">0</span></div>
+        <canvas id="game-canvas" width="500" height="500"></canvas>
+    </div>
+    
+    <div class="controls">
+        Use arrow keys to control the snake. Collect skills to grow your expertise!
+    </div>
+    
+    <div class="skill-legends" id="skill-legends"></div>
+    
+    <script>
+        // Skills with colors
+        const skills = [
+            { name: "Python", color: "#3776AB" },
+            { name: "C++", color: "#00599C" },
+            { name: "Machine Learning", color: "#FF6F00" },
+            { name: "Git", color: "#F05032" },
+            { name: "Linux", color: "#FCC624" },
+            { name: "PyQt", color: "#41CD52" },
+            { name: "CUDA", color: "#76B900" },
+            { name: "OPENMP", color: "#0096D6" },
+            { name: "MPI", color: "#8E44AD" },
+            { name: "FastApi", color: "#009688" },
+            { name: "Pygame", color: "#FFDE57" },
+            { name: "Teaching", color: "#E91E63" }
+        ];
+
+        // Create skill legend items
+        const skillLegends = document.getElementById('skill-legends');
+        skills.forEach(skill => {
+            const skillItem = document.createElement('div');
+            skillItem.className = 'skill-item';
+            skillItem.textContent = skill.name;
+            skillItem.style.backgroundColor = skill.color;
+            skillLegends.appendChild(skillItem);
+        });
+
+        // Canvas setup
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const gridSize = 20;
+        const gridWidth = canvas.width / gridSize;
+        const gridHeight = canvas.height / gridSize;
+
+        // Game variables
+        let snake = [{ x: 10, y: 10 }];
+        let food = {};
+        let dx = 1;
+        let dy = 0;
+        let score = 0;
+        let currentSkillIndex = -1;
+        let gameSpeed = 150;
+        let gameLoop;
+
+        // Initialize game
+        function initGame() {
+            createFood();
+            document.addEventListener('keydown', changeDirection);
+            gameLoop = setInterval(updateGame, gameSpeed);
+        }
+
+        // Create food at random position with a skill
+        function createFood() {
+            currentSkillIndex = (currentSkillIndex + 1) % skills.length;
+            document.getElementById('current-skill').textContent = skills[currentSkillIndex].name;
+            
+            food = {
+                x: Math.floor(Math.random() * gridWidth),
+                y: Math.floor(Math.random() * gridHeight),
+                skill: skills[currentSkillIndex]
+            };
+            
+            // Make sure food doesn't appear on the snake
+            for (let i = 0; i < snake.length; i++) {
+                if (food.x === snake[i].x && food.y === snake[i].y) {
+                    createFood();
+                    return;
+                }
+            }
+        }
+
+        // Draw the snake, food, and grid
+        function draw() {
+            // Clear the canvas
+            ctx.fillStyle = '#161b22';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid lines
+            ctx.strokeStyle = '#21262d';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= gridWidth; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * gridSize, 0);
+                ctx.lineTo(i * gridSize, canvas.height);
+                ctx.stroke();
+            }
+            for (let i = 0; i <= gridHeight; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, i * gridSize);
+                ctx.lineTo(canvas.width, i * gridSize);
+                ctx.stroke();
+            }
+            
+            // Draw snake
+            snake.forEach((segment, index) => {
+                // Gradient from head to tail
+                const gradientPosition = index / snake.length;
+                const r = Math.floor(41 + (65 - 41) * gradientPosition);
+                const g = Math.floor(171 + (209 - 171) * gradientPosition);
+                const b = Math.floor(135 + (165 - 135) * gradientPosition);
+                
+                ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                
+                // Head is slightly different
+                if (index === 0) {
+                    ctx.fillStyle = '#4CAF50';
+                }
+                
+                ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+                
+                // Add border to each segment
+                ctx.strokeStyle = '#0d1117';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+            });
+            
+            // Draw food with skill color
+            ctx.fillStyle = food.skill.color;
+            ctx.beginPath();
+            const centerX = food.x * gridSize + gridSize / 2;
+            const centerY = food.y * gridSize + gridSize / 2;
+            ctx.arc(centerX, centerY, gridSize / 2, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Draw skill initial letter on food
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(food.skill.name.charAt(0), centerX, centerY);
+        }
+
+        // Update game state
+        function updateGame() {
+            // Calculate new head position
+            const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+            
+            // Check if game over (wall collision)
+            if (head.x < 0 || head.x >= gridWidth || head.y < 0 || head.y >= gridHeight) {
+                clearInterval(gameLoop);
+                alert(`Game Over! Your score: ${score}`);
+                resetGame();
+                return;
+            }
+            
+            // Check if snake hits itself
+            for (let i = 0; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    clearInterval(gameLoop);
+                    alert(`Game Over! Your score: ${score}`);
+                    resetGame();
+                    return;
+                }
+            }
+            
+            // Add new head
+            snake.unshift(head);
+            
+            // Check if snake eats food
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                document.getElementById('score').textContent = score;
+                createFood();
+                
+                // Speed up slightly as score increases
+                if (score % 5 === 0 && gameSpeed > 70) {
+                    clearInterval(gameLoop);
+                    gameSpeed -= 10;
+                    gameLoop = setInterval(updateGame, gameSpeed);
+                }
+            } else {
+                // Remove tail if no food eaten
+                snake.pop();
+            }
+            
+            draw();
+        }
+
+        // Handle keyboard input
+        function changeDirection(event) {
+            const LEFT_KEY = 37;
+            const RIGHT_KEY = 39;
+            const UP_KEY = 38;
+            const DOWN_KEY = 40;
+            
+            const keyPressed = event.keyCode;
+            
+            const goingUp = dy === -1;
+            const goingDown = dy === 1;
+            const goingLeft = dx === -1;
+            const goingRight = dx === 1;
+            
+            if (keyPressed === LEFT_KEY && !goingRight) {
+                dx = -1;
+                dy = 0;
+            }
+            if (keyPressed === RIGHT_KEY && !goingLeft) {
+                dx = 1;
+                dy = 0;
+            }
+            if (keyPressed === UP_KEY && !goingDown) {
+                dx = 0;
+                dy = -1;
+            }
+            if (keyPressed === DOWN_KEY && !goingUp) {
+                dx = 0;
+                dy = 1;
+            }
+        }
+
+        // Reset game
+        function resetGame() {
+            snake = [{ x: 10, y: 10 }];
+            dx = 1;
+            dy = 0;
+            score = 0;
+            gameSpeed = 150;
+            document.getElementById('score').textContent = score;
+            createFood();
+            gameLoop = setInterval(updateGame, gameSpeed);
+        }
+
+        // Start the game
+        initGame();
+    </script>
+</body>
+</html>
